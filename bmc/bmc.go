@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/damyan/gofish"
 	"github.com/damyan/gofish/common"
@@ -30,13 +31,14 @@ var disableBootWithoutSettingUEFIBootMode = redfish.Boot{
 }
 
 type Options struct {
-	Endpoint         string
-	Username         string
-	Password         string
-	BasicAuth        bool
-	URISuffix        string
-	EntityTag        string
-	DisableEtagMatch bool
+	Endpoint          string
+	Username          string
+	Password          string
+	BasicAuth         bool
+	URISuffix         string
+	EntityTag         string
+	DisableEtagMatch  bool
+	IfNoneMatchHeader string
 }
 
 type RedfishBMC struct {
@@ -74,8 +76,25 @@ func (r *RedfishBMC) RunSetBootOncePXE() error {
 		} else {
 			setBoot = pxeBootWithoutSettingUEFIBootMode
 		}
-		if err := system.SetBoot(setBoot); err != nil {
-			return fmt.Errorf("failed to set the boot order: %w", err)
+		if r.Options.IfNoneMatchHeader == "" {
+			if err := system.SetBoot(setBoot); err != nil {
+				return fmt.Errorf("failed to set next boot to PXE: %w", err)
+			}
+		} else {
+			i := r.Options.IfNoneMatchHeader
+			t := struct {
+				Boot redfish.Boot
+			}{Boot: setBoot}
+			headers := make(map[string]string)
+			i = strings.Trim(i, `"`)
+			headers["If-None-Match"] = i
+			log.Printf("Headers: %s\n", headers)
+
+			resp, err := system.GetClient().PatchWithHeaders(system.ODataID, t, headers)
+			if err != nil {
+				return err
+			}
+			return resp.Body.Close()
 		}
 	}
 
@@ -95,8 +114,25 @@ func (r *RedfishBMC) RunSetBootOnceDisable() error {
 		} else {
 			setBoot = disableBootWithoutSettingUEFIBootMode
 		}
-		if err := system.SetBoot(setBoot); err != nil {
-			return fmt.Errorf("failed to set the boot order: %w", err)
+		if r.Options.IfNoneMatchHeader == "" {
+			if err := system.SetBoot(setBoot); err != nil {
+				return fmt.Errorf("failed to disable next boot: %w", err)
+			}
+		} else {
+			i := r.Options.IfNoneMatchHeader
+			t := struct {
+				Boot redfish.Boot
+			}{Boot: setBoot}
+			headers := make(map[string]string)
+			i = strings.Trim(i, `"`)
+			headers["If-None-Match"] = i
+			log.Printf("Headers: %s\n", headers)
+
+			resp, err := system.GetClient().PatchWithHeaders(system.ODataID, t, headers)
+			if err != nil {
+				return err
+			}
+			return resp.Body.Close()
 		}
 	}
 

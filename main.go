@@ -13,12 +13,13 @@ var redfishBMC *bmc.RedfishBMC
 var config Config
 
 type Config struct {
-	Username         string
-	Password         string
-	Endpoint         string
-	URISuffix        string
-	EntityTag        string
-	DisableEtagMatch bool
+	Username          string
+	Password          string
+	Endpoint          string
+	URISuffix         string
+	EntityTag         string
+	DisableEtagMatch  bool
+	IfNoneMatchHeader string
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -64,6 +65,7 @@ func NewBootOnceCommand() *cobra.Command {
 	}
 	bootOnceCmd.PersistentFlags().StringVarP(&config.URISuffix, "uri-suffix", "s", "", "BMC URI suffix")
 	bootOnceCmd.PersistentFlags().StringVarP(&config.EntityTag, "entity-tag", "t", "", "BMC entity tag (etag)")
+	bootOnceCmd.PersistentFlags().StringVarP(&config.IfNoneMatchHeader, "if-none-match-header", "i", "", "Set if-none-match header")
 	bootOnceCmd.PersistentFlags().BoolVarP(&config.DisableEtagMatch, "disable-etag-match", "d", false, "Disable etag match (no header)")
 	bootOnceCmd.AddCommand(NewBootOncePXECommand())
 	bootOnceCmd.AddCommand(NewBootOnceDisableCommand())
@@ -147,6 +149,7 @@ func NewPowerCommand() *cobra.Command {
 	}
 	powerCmd.PersistentFlags().StringVarP(&config.URISuffix, "uri-suffix", "s", "", "BMC URI suffix")
 	powerCmd.PersistentFlags().StringVarP(&config.EntityTag, "entity-tag", "t", "", "BMC entity tag (etag)")
+	powerCmd.PersistentFlags().StringVarP(&config.IfNoneMatchHeader, "if-none-match-header", "i", "", "Set if-none-match header")
 	powerCmd.PersistentFlags().BoolVarP(&config.DisableEtagMatch, "disable-etag-match", "d", false, "Disable etag match (no header)")
 	powerCmd.AddCommand(NewPowerOnCommand())
 	powerCmd.AddCommand(NewPowerOffCommand())
@@ -225,12 +228,13 @@ func runGetPower(cmd *cobra.Command, args []string) error {
 
 func initOptions() *bmc.Options {
 	return &bmc.Options{
-		Username:         config.Username,
-		Password:         config.Password,
-		Endpoint:         config.Endpoint,
-		BasicAuth:        true,
-		URISuffix:        config.URISuffix,
-		EntityTag:        config.EntityTag,
-		DisableEtagMatch: config.DisableEtagMatch,
+		Username:          config.Username,
+		Password:          config.Password,
+		Endpoint:          config.Endpoint,
+		BasicAuth:         true,
+		URISuffix:         config.URISuffix,
+		EntityTag:         config.EntityTag,
+		DisableEtagMatch:  config.DisableEtagMatch,
+		IfNoneMatchHeader: config.IfNoneMatchHeader,
 	}
 }
