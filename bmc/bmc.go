@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/stmcginnis/gofish"
-	"github.com/stmcginnis/gofish/common"
-	"github.com/stmcginnis/gofish/redfish"
-	//"github.com/stmcginnis/gofish/common"
-	//"github.com/stmcginnis/gofish/redfish"
+	"github.com/damyan/gofish"
+	"github.com/damyan/gofish/common"
+	"github.com/damyan/gofish/redfish"
 )
 
 var pxeBootWithSettingUEFIBootMode = redfish.Boot{

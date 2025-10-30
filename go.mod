@@ -3,8 +3,8 @@ module github.com/damyan/bmc-tester
 go 1.25.3
 
 require (
+	github.com/damyan/gofish v0.0.0-20251031100741-16640d5a78d4
 	github.com/spf13/cobra v1.10.1
-	github.com/stmcginnis/gofish v0.20.0
 )
 
 require (
