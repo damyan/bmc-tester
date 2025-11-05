@@ -37,6 +37,7 @@ type Options struct {
 	BasicAuth         bool
 	URISuffix         string
 	EntityTag         string
+	EscapeEntityTag   bool
 	DisableEtagMatch  bool
 	IfNoneMatchHeader string
 }
@@ -76,6 +77,10 @@ func (r *RedfishBMC) RunSetBootOncePXE() error {
 		} else {
 			setBoot = pxeBootWithoutSettingUEFIBootMode
 		}
+		if r.Options.URISuffix != "" {
+			defer restoreSystemURI(system, system.ODataID)
+			applySystemURISuffix(system, r.Options.URISuffix)
+		}
 		if r.Options.IfNoneMatchHeader == "" {
 			if err := system.SetBoot(setBoot); err != nil {
 				return fmt.Errorf("failed to set next boot to PXE: %w", err)
@@ -114,6 +119,10 @@ func (r *RedfishBMC) RunSetBootOnceDisable() error {
 		} else {
 			setBoot = disableBootWithoutSettingUEFIBootMode
 		}
+		if r.Options.URISuffix != "" {
+			defer restoreSystemURI(system, system.ODataID)
+			applySystemURISuffix(system, r.Options.URISuffix)
+		}
 		if r.Options.IfNoneMatchHeader == "" {
 			if err := system.SetBoot(setBoot); err != nil {
 				return fmt.Errorf("failed to disable next boot: %w", err)
@@ -137,6 +146,18 @@ func (r *RedfishBMC) RunSetBootOnceDisable() error {
 	}
 
 	return nil
+}
+
+func restoreSystemURI(system *redfish.ComputerSystem, oldURI string) {
+	log.Printf("Restoring system URI, system URI: %s, oldURI: %s", system.ODataID, oldURI)
+	system.ODataID = oldURI
+	log.Printf("New system URI: %s", system.ODataID)
+}
+
+func applySystemURISuffix(system *redfish.ComputerSystem, suffix string) {
+	log.Printf("Applying system URI suffix, system URI: %s, suffix: %s", system.ODataID, suffix)
+	system.ODataID = system.ODataID + suffix
+	log.Printf("New system URI: %s", system.ODataID)
 }
 
 func (r *RedfishBMC) RunGetBootOnce() error {
@@ -218,11 +239,9 @@ func (r *RedfishBMC) getSystems() ([]*redfish.ComputerSystem, error) {
 			system.SetETag(r.Options.EntityTag)
 		}
 
+		system.StripEtagQuotes(r.Options.EscapeEntityTag)
 		system.DisableEtagMatch(r.Options.DisableEtagMatch)
 
-		if r.Options.URISuffix != "" {
-			system.ODataID = system.ODataID + r.Options.URISuffix
-		}
 		log.Printf("System URI: %s", system.ODataID)
 	}
 

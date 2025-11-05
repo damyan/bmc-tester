@@ -18,6 +18,7 @@ type Config struct {
 	Endpoint          string
 	URISuffix         string
 	EntityTag         string
+	EscapeEntityTag   bool
 	DisableEtagMatch  bool
 	IfNoneMatchHeader string
 }
@@ -65,6 +66,7 @@ func NewBootOnceCommand() *cobra.Command {
 	}
 	bootOnceCmd.PersistentFlags().StringVarP(&config.URISuffix, "uri-suffix", "s", "", "BMC URI suffix")
 	bootOnceCmd.PersistentFlags().StringVarP(&config.EntityTag, "entity-tag", "t", "", "BMC entity tag (etag)")
+	bootOnceCmd.PersistentFlags().BoolVarP(&config.EscapeEntityTag, "escape-entity-tag", "y", false, "Escape entity tag")
 	bootOnceCmd.PersistentFlags().StringVarP(&config.IfNoneMatchHeader, "if-none-match-header", "i", "", "Set if-none-match header")
 	bootOnceCmd.PersistentFlags().BoolVarP(&config.DisableEtagMatch, "disable-etag-match", "d", false, "Disable etag match (no header)")
 	bootOnceCmd.AddCommand(NewBootOncePXECommand())
@@ -149,6 +151,7 @@ func NewPowerCommand() *cobra.Command {
 	}
 	powerCmd.PersistentFlags().StringVarP(&config.URISuffix, "uri-suffix", "s", "", "BMC URI suffix")
 	powerCmd.PersistentFlags().StringVarP(&config.EntityTag, "entity-tag", "t", "", "BMC entity tag (etag)")
+	powerCmd.PersistentFlags().BoolVarP(&config.EscapeEntityTag, "escape-entity-tag", "y", false, "Escape entity tag")
 	powerCmd.PersistentFlags().StringVarP(&config.IfNoneMatchHeader, "if-none-match-header", "i", "", "Set if-none-match header")
 	powerCmd.PersistentFlags().BoolVarP(&config.DisableEtagMatch, "disable-etag-match", "d", false, "Disable etag match (no header)")
 	powerCmd.AddCommand(NewPowerOnCommand())
@@ -234,6 +237,7 @@ func initOptions() *bmc.Options {
 		BasicAuth:         true,
 		URISuffix:         config.URISuffix,
 		EntityTag:         config.EntityTag,
+		EscapeEntityTag:   config.EscapeEntityTag,
 		DisableEtagMatch:  config.DisableEtagMatch,
 		IfNoneMatchHeader: config.IfNoneMatchHeader,
 	}
